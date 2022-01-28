@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>WebSocker Client</title>
+
+</head>
+
+<body>
+
+    <button onmousedown="forward()" onmouseup="stop()">W</button>
+    <button onmousedown="reverse()" onmouseup="stop()">S</button>
+
+</body>
+
+<script>
+var opensocket = true;
+window.addEventListener("load", onLoad, false);
+
+var websocket= new WebSocket('ws://10.72.5.238:8000');
+
+function onLoad() {
+    websocket.onopen = function(evt) { onOpen(evt) };
+    websocket.onclose = function(evt) { onClose(evt) };
+    websocket.onmessage = function(evt) { onMessage(evt) };
+    websocket.onerror = function(evt) { onError(evt) };
+}				
+function onOpen(evt) {
+    opensocket = true;
+    console.log("open");
+}   
+function onClose(evt) {
+    opensocket = false;
+    console.log("close");
+    websocket= new WebSocket('ws://10.72.5.238:8000');
+    onLoad();
+}
+function onMessage(evt) {
+    console.log(`[message] Data received from server: ${evt.data}`);
+}
+    
+function onError(evt) {
+    console.log("error");
+}
+
+function forward(){
+    websocket.send("w");
+}
+
+function reverse(){
+    websocket.send("s");
+}
+
+function stop(){
+    websocket.send("stop");
+}
+
+document.addEventListener('keydown', (event) => {
+  var name = event.key;
+  var code = event.code;
+  websocket.send(name+"");
+  // Alert the key name and key code on keydown
+}, false);
+
+if (window.DeviceMotionEvent == undefined) {
+        //No accelerometer is present. Use buttons. 
+        alert("no accelerometer");
+    }
+    else {
+        alert("accelerometer found");
+        window.addEventListener("devicemotion", accelerometerUpdate, true);
+    }
+
+var mostrecent = 0;
+function accelerometerUpdate(e) {
+    var aX = event.accelerationIncludingGravity.x*1;
+    if (aX != mostrecent && opensocket == true){
+        mostrecent = aX;
+        websocket.send(mostrecent);
+    }
+}
+
+</script>
+
+</html>
