@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="design/style.css">
+
+    <title>WebSocker Client</title>
+
+</head>
+
+<body>
+
+    <button onmousedown="forward()" onmouseup="stop()">W</button>
+    <button onmousedown="reverse()" onmouseup="stop()">S</button>
+
+</body>
+
+<script>
+
+var opensocket = true;
+var opensocket2 = true;
+window.addEventListener("load", onLoad, false);
+window.addEventListener("load", onLoad2, false);
+
+
+var websocket= new WebSocket('wss://10.72.5.153:8000');
+var websocket2 = new WebSocket('wss://10.72.5.153:8001')
+
+function onLoad() {
+    websocket.onopen = function(evt) { onOpen(evt) };
+
+    websocket.onclose = function(evt) { onClose(evt) };
+
+    websocket.onmessage = function(evt) { onMessage(evt) };
+
+    websocket.onerror = function(evt) { onError(evt) };
+}				
+function onOpen(evt) {
+    opensocket = true;
+    console.log("open");
+}   
+function onClose(evt) {
+    opensocket = false;
+    console.log("close");
+    websocket= new WebSocket('wss://10.72.5.153:8000');
+    onLoad();
+}
+function onMessage(evt) {
+    console.log(`[message] Data received from server: ${evt.data}`);
+}
+
+
+function onLoad2() {
+    websocket2.onopen = function(evt) { onOpen2(evt) };
+    websocket2.onclose = function(evt) { onClose2(evt) };
+    websocket2.onmessage = function(evt) { onMessage2(evt) };
+    websocket2.onerror = function(evt) { onError2(evt) };
+}				
+function onOpen2(evt) {
+    opensocket2 = true;
+    console.log("open");
+}   
+function onClose2(evt) {
+    opensocket2 = false;
+    console.log("close");
+    websocket2= new WebSocket('wss://10.72.5.153:8001');
+    onLoad2();
+}
+function onMessage2(evt) {
+    console.log(`[message] Data received from server: ${evt.data}`);
+}
+    
+function onError2(evt) {
+    console.log("error");
+}
+
+function forward(){
+    websocket.send("forward");
+}
+
+function reverse(){
+    websocket.send("reverse");
+}
+
+function stop(){
+    websocket.send("stop");
+}
+
+if (window.DeviceMotionEvent == undefined) {
+        //No accelerometer is present. Use buttons. 
+        alert("no accelerometer");
+    }
+    else {
+        alert("accelerometer found");
+        window.addEventListener("devicemotion", accelerometerUpdate, true);
+    }
+
+var mostrecent = 0;
+function accelerometerUpdate(e) {
+    var aY = event.accelerationIncludingGravity.x*1;
+    if (aY -  mostrecent < 0.1 && mostrecent - aY < 0.1)
+    {
+        //
+    }
+    else{
+        mostrecent = aY;
+        console.log(aY);
+        websocket2.send(aY);
+    }
+}
+</script>
+
+</html>
